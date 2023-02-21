@@ -1,0 +1,59 @@
+version: '1.0'
+services:
+    postgres:
+        image: postgres:10.5
+        restart: always
+        environment:
+          - POSTGRES_USER=postgres
+          - POSTGRES_PASSWORD=postgres
+        logging:
+          options:
+            max-size: 10m
+            max-file: "3"
+        ports:
+          - '5438:5432'
+        networks:
+          - restaurant_net
+        volumes: 
+          - ./db/postgres-data:/var/lib/postgresql/data
+          # copy the sql script to create tables
+          - ./db/sql/up.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    users_microservice:
+        image: node
+        user: "node"
+        working_dir: /home/node/app
+        restart: always
+        ports:
+          - '5550:5550'
+        networks:
+          - restaurant_net
+        volumes: 
+          - ./src/users:/home/node/app
+        command: npm start
+    inventory_microservice:
+        image: node
+        user: "node"
+        working_dir: /home/node/app
+        restart: always
+        ports:
+          - '5551:5551'
+        networks:
+          - restaurant_net
+        volumes: 
+          - ./src/inventory:/home/node/app
+        command: npm start
+    reservation_microservice:
+        image: node
+        user: "node"
+        working_dir: /home/node/app
+        restart: always
+        ports:
+          - '5552:5552'
+        networks:
+          - restaurant_net
+        volumes: 
+          - ./src/reservations:/home/node/app
+        command: npm start
+networks:
+    restaurant_net:
+        driver: bridge
